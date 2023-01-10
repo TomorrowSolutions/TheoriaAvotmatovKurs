@@ -20,180 +20,22 @@ namespace TheoriaAvotmatov
         List<WordType> expLex;
         private void button2_Click(object sender, EventArgs e)
         {
-            char[] razd = new char[] { '+', '-', '*', '/', ';', ':', '=', ',', '>', '<', '(', ')', '}', '{','!'};
-            string[] dividers = new string[] { "++", "--", "<=", ">=","==","!=" };
-            Regex ASCIILettersOnly = new Regex(@"^[\P{L}A-Za-z]*$");
-            string buffer = string.Empty;            
-            List<WordType> words = new List<WordType>();
-            if (ASCIILettersOnly.IsMatch(textBox1.Text))
-            {
-                for(int i=0;i<textBox1.Text.Length;i++)
-                {
-                    
-                    if (Char.IsLetterOrDigit(textBox1.Text[i]))
-                    {
-                        if (Char.IsDigit(textBox1.Text[i]))
-                        {
-                            if (i >=textBox1.Text.Length-1)
-                            {
-                                words.Add(new WordType(textBox1.Text[i].ToString(), "Literal"));
-                            }
-                            else
-                            {
-                                int numind= i;
-                                string other = textBox1.Text.Substring(numind + 1);
-                                var multiDigit = new List<int>();
-                                multiDigit.Add((int)Char.GetNumericValue(textBox1.Text[i]));
-                                int iter = 0;
-                                foreach (char c2 in other)
-                                {
-                                    if (Char.IsDigit(c2))
-                                    {
-                                        multiDigit.Add((int)Char.GetNumericValue(c2));
-                                        iter++;
-                                    }
-                                    else
-                                    {
-                                        break;
-                                    }
-                                }                                
-                                
-                                words.Add(new WordType(String.Join("", multiDigit), "Literal"));
-                                i += iter;
-                            }                            
-                        }
-                        else if (Char.IsLetter(textBox1.Text[i]))
-                        {
-                            if (i >= textBox1.Text.Length - 1)
-                            {
-                                words.Add(new WordType(textBox1.Text[i].ToString(), "Identificator"));
-                            }
-                            else
-                            {
-                                int letterIndex = i;
-                                string other = textBox1.Text.Substring(letterIndex + 1);
-                                var word = new List<char>();
-                                word.Add(textBox1.Text[i]);
-                                int iter = 0;
-                                foreach (char c2 in other)
-                                {
-                                    if (char.IsLetterOrDigit(c2))
-                                    {
-                                        word.Add(c2);
-                                        iter++;
-                                    }
-                                    else
-                                    {
-                                        break;
-                                    }
-                                }                                
-                                
-                                words.Add(new WordType(string.Join("", word), "Identificator"));
-                                i+=iter;
-                            }
-                        }                        
-                    }
-                    else if(textBox1.Text[i] ==' '|| textBox1.Text[i] == '\n' || textBox1.Text[i] == '\r' || textBox1.Text[i] == '\t')
-                    {
-                        continue;
-                    }
-                    else
-                    {
-                        if (i >= textBox1.Text.Length-1)
-                        {
-                            
-                            foreach (char r  in razd)
-                            {
-                                if (textBox1.Text[i]==r)
-                                {
-                                    words.Add(new WordType(textBox1.Text[i].ToString(), "Razdelitel"));
-                                    break;
-                                }
-                            }
-                           
-                        }
-                        else
-                        {
-                            bool isFind = false;
-                            foreach (char r in razd)
-                            {
-                                if (textBox1.Text[i] == r)
-                                {
-                                    int razdind=i;
-                                    isFind = true;
-                                    bool isDoubleDivider = false;
-                                    bool isFindDuplicate = false;
-                                    int iter = 0;
-                                    buffer= textBox1.Text[i].ToString();
-                                    foreach (char r2 in razd)
-                                    {
-                                        if (textBox1.Text[razdind+1]==r2)
-                                        {                                            
-                                            string dr = textBox1.Text[i].ToString() + textBox1.Text[razdind + 1].ToString();
-                                            
-                                            foreach (string d in dividers)
-                                            {                                                
-                                                if (d == dr)
-                                                {
-                                                    buffer = dr;
-                                                    isDoubleDivider = true;
-                                                    iter++;
-                                                    break;                                                    
-                                                }
-                                            }
-                                            if (isDoubleDivider)
-                                            {
-                                                words.Add(new WordType(buffer, "Razdelitel"));
-                                            }
-                                            else
-                                            {
-                                                isFindDuplicate = true;
-                                                iter++;
-                                            }
-                                            break;
-                                        }
-                                    }
-                                    if (isFindDuplicate)
-                                    {
-                                        words.Add(new WordType(buffer, "Razdelitel"));
-                                        buffer = textBox1.Text[razdind + 1].ToString();
-                                        words.Add(new WordType(buffer, "Razdelitel"));
-                                    }
-                                    else if (!isDoubleDivider && !isFindDuplicate)
-                                    {
-                                        words.Add(new WordType(buffer, "Razdelitel"));
-                                    }                                    
-                                    buffer = string.Empty;                                                                                                           
-                                    i +=iter;
-                                    break;
-                                }                                
-                            }
-                            if (isFind == false)
-                            {
-                                char unk = textBox1.Text[i];
-                                MessageBox.Show("Неизвестный символ!"+$"\"{unk}\"");
-                                return;
-                            }
-                        }                        
-                    }
-                }
-                dataGridView1.Rows.Clear();                
-                foreach (var kvPair in words)
-                {
-                    string[] row = new string[] { kvPair.getWord(), kvPair.getType() };
-                    dataGridView1.Rows.Add(row);
-                }
-                tabControl1.SelectedIndex = 1;
-                expOneRazd = razd;
-                expTwoRazd = dividers;
-                expLex = words;                
-            }
-            else
-            {
-                MessageBox.Show("Non-english letter");
+            LexemFinder lf = new LexemFinder(textBox1.Text);
+            List<WordType> words = lf.find();
+            if (words==null)
+            {                
                 return;
             }
-
+            dataGridView1.Rows.Clear();
+            foreach (var kvPair in words)
+            {
+                string[] row = new string[] { kvPair.getWord(), kvPair.getType() };
+                dataGridView1.Rows.Add(row);
+            }
+            tabControl1.SelectedIndex = 1;
+            expOneRazd = LexemFinder.razd;
+            expTwoRazd = LexemFinder.dividers;
+            expLex = words;
         }
         
         private void button1_Click(object sender, EventArgs e)
